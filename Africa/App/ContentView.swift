@@ -12,6 +12,32 @@ struct ContentView: View {
     let animals: [Animal] = Bundle.main.decode("animals.json")
     @State private var isGridViewActive: Bool = false
     let haptics = UIImpactFeedbackGenerator(style:.medium)
+    //let gridLayout: [GridItem] = Array(repeating: GridItem(.flexible()), count: 2)
+    @State private var gridLayout: [GridItem] = [GridItem(.flexible())]
+    @State private var gridColumn: Int = 1
+    @State private var toolbarIcon: String = "square.grid.2x2"
+    
+    //MARK: FUNCTIONS
+    
+    func gridSwitch() {
+        gridLayout = Array(repeating: .init(.flexible()), count: gridLayout.count % 3 + 1)
+        gridColumn = gridLayout.count
+        print("Grid Number: \(gridLayout.count)")
+        //TOOLBAR IMAGE
+        switch gridColumn{
+        case 1:
+            toolbarIcon = "square.grid.2x2"
+        case 2:
+            toolbarIcon = "square.grid.3x2"
+        case 3:
+            toolbarIcon = "rectangle.grid.1x2"
+        default:
+            toolbarIcon = "square.grid.2x2"
+        }
+        print("Toolbar Item: \(toolbarIcon)")
+        
+        
+    }
     
     //MARK: BODY
     var body: some View {
@@ -27,10 +53,21 @@ struct ContentView: View {
                                 AnimalListItemView(animal: animal)
                             } //: LINK
                         } //: LOOP
-                    }
+                    } //: LIST
                 } else {
-                    Text("Grid View")
-                }//: LIST
+                    ScrollView(.vertical, showsIndicators: false) {
+                        LazyVGrid(columns: gridLayout, alignment: .center, spacing: 10) {
+                            ForEach(animals) { animal in
+                                NavigationLink( destination: AnimalDetailView(animal: animal)) {
+                                    AnimalGridItemView(animal: animal)
+                                }
+                            }
+                        }//: GRID
+                        .padding(10)
+                        .animation(.easeIn, value: isGridViewActive)
+                    }//:SCROLL
+                    
+                } //: END OF IF
             } //: GROUP
                     .navigationBarTitle("Africa", displayMode: .large)
                     .toolbar{
@@ -40,6 +77,7 @@ struct ContentView: View {
                                     print("List View is activated")
                                     isGridViewActive = false
                                     haptics.impactOccurred()
+                                    
                                 }) {
                                     Image(systemName: "square.fill.text.grid.1x2")
                                         .font(.title2)
@@ -50,8 +88,10 @@ struct ContentView: View {
                                     print("Grid View is activated")
                                     haptics.impactOccurred()
                                     isGridViewActive = true
+                                    haptics.impactOccurred()
+                                    gridSwitch()
                                 }) {
-                                    Image(systemName: "square.grid.2x2")
+                                    Image(systemName: toolbarIcon)
                                         .font(.title2)
                                         .foregroundStyle( isGridViewActive ? Color.accent : Color.primary)
                                     
